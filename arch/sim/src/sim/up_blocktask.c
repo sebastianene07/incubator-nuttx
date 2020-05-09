@@ -82,7 +82,7 @@ void up_block_task(struct tcb_s *tcb, tstate_t task_state)
   DEBUGASSERT((tcb->task_state >= FIRST_READY_TO_RUN_STATE) &&
               (tcb->task_state <= LAST_READY_TO_RUN_STATE));
 
-  /* sinfo("Blocking TCB=%p\n", tcb); */
+  sinfo("Blocking TCB=%p\n", tcb);
 
   /* Remove the tcb task from the ready-to-run list.  If we are blocking the
    * task at the head of the task list (the most likely case), then a
@@ -118,7 +118,12 @@ void up_block_task(struct tcb_s *tcb, tstate_t task_state)
        * value, then this is really the previously running task restarting!
        */
 
+#ifdef CONFIG_SIM_PREEMPTIBLE
+      FAR struct tcb_s *prev_rtcb = rtcb;
+      if (!up_sigsetjmp(rtcb->xcp.sig_jump_buffer, rtcb->xcp.is_initialized))
+#else
       if (!up_setjmp(rtcb->xcp.regs))
+#endif
         {
           /* Restore the exception context of the rtcb at the (new) head
            * of the ready-to-run task list.
@@ -145,7 +150,12 @@ void up_block_task(struct tcb_s *tcb, tstate_t task_state)
 
           /* Then switch contexts */
 
+#ifdef CONFIG_SIM_PREEMPTIBLE
+          up_siglongjmp(rtcb->xcp.sig_jump_buffer,
+                        &rtcb->xcp.is_initialized);
+#else
           up_longjmp(rtcb->xcp.regs, 1);
+#endif
         }
     }
 }

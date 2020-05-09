@@ -81,6 +81,10 @@ void _exit(int status)
    * head of the list.
    */
 
+#ifdef CONFIG_SIM_PREEMPTIBLE
+  FAR struct tcb_s *prev_tcb = tcb;
+#endif
+
   tcb = this_task();
   sinfo("New Active Task TCB=%p\n", tcb);
 
@@ -102,5 +106,9 @@ void _exit(int status)
 
   /* Then switch contexts */
 
+#ifdef CONFIG_SIM_PREEMPTIBLE
+  up_siglongjmp(tcb->xcp.sig_jump_buffer, &tcb->xcp.is_initialized);
+#else
   up_longjmp(tcb->xcp.regs, 1);
+#endif
 }

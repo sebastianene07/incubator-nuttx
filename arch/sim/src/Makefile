@@ -90,6 +90,11 @@ ifeq ($(CONFIG_SPINLOCK),y)
   HOSTSRCS += up_testset.c
 endif
 
+ifeq ($(CONFIG_SIM_PREEMPTIBLE),y)
+  HOSTSRCS += up_sigsetjmp.c
+  HOSTCFLAGS += -DCONFIG_USEC_PER_TICK=$(CONFIG_USEC_PER_TICK)
+endif
+
 ifeq ($(CONFIG_SMP),y)
   CSRCS += up_smpsignal.c up_cpuidlestack.c
   REQUIREDOBJS += up_smpsignal$(OBJEXT)

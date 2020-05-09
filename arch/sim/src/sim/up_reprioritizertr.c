@@ -142,7 +142,13 @@ void up_reprioritize_rtr(struct tcb_s *tcb, uint8_t priority)
            * restarting!
            */
 
+#ifdef CONFIG_SIM_PREEMPTIBLE
+          FAR struct tcb_s *prev_rtcb = rtcb;
+          if (!up_sigsetjmp(rtcb->xcp.sig_jump_buffer,
+                            rtcb->xcp.is_initialized))
+#else
           if (!up_setjmp(rtcb->xcp.regs))
+#endif
             {
               /* Restore the exception context of the rtcb at the (new) head
                * of the ready-to-run task list.
@@ -169,7 +175,12 @@ void up_reprioritize_rtr(struct tcb_s *tcb, uint8_t priority)
 
               /* Then switch contexts */
 
+#ifdef CONFIG_SIM_PREEMPTIBLE
+              up_siglongjmp(rtcb->xcp.sig_jump_buffer,
+                            &rtcb->xcp.is_initialized);
+#else
               up_longjmp(rtcb->xcp.regs, 1);
+#endif
             }
         }
     }
