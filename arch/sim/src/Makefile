@@ -83,7 +83,7 @@ ifeq ($(CONFIG_HOST_MACOS),y)
   HOSTCFLAGS += -Wno-deprecated-declarations
 endif
 
-HOSTSRCS = up_hostirq.c up_hostmemory.c up_hosttime.c
+HOSTSRCS = up_hostirq.c up_hostmemory.c up_hosttime.c up_irq.c
 STDLIBS += -lpthread
 HOSTCFLAGS += -DCONFIG_USEC_PER_TICK=$(CONFIG_USEC_PER_TICK)
 

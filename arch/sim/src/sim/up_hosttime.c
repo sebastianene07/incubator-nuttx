@@ -22,6 +22,7 @@
  * Included Files
  ****************************************************************************/
 
+#include <pthread.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -37,6 +38,8 @@
 
 #include <time.h>
 #include <unistd.h>
+
+#include "up_internal.h"
 
 /****************************************************************************
  * Private Types
@@ -65,6 +68,14 @@ static int host_setup_signals(void (*action)(int, siginfo_t *, void *));
  */
 
 static sched_timer_callback_t g_sched_process_timer_cb;
+
+/****************************************************************************
+ * Public Data
+ ****************************************************************************/
+
+/* Host thread specific information */
+
+extern pthread_key_t g_cpu_key;
 
 /****************************************************************************
  * Private Functions

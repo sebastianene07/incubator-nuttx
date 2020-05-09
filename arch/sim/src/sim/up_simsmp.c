@@ -60,8 +60,11 @@ struct sim_cpuinfo_s
  * Private Data
  ****************************************************************************/
 
-static pthread_key_t g_cpu_key;
 static pthread_t     g_cpu_thread[CONFIG_SMP_NCPUS];
+
+/****************************************************************************
+ * Public Data
+ ****************************************************************************/
 
 /* These spinlocks are used in the SMP configuration in order to implement
  * up_cpu_pause().  The protocol for CPUn to pause CPUm is as follows
@@ -79,6 +82,10 @@ static pthread_t     g_cpu_thread[CONFIG_SMP_NCPUS];
 
 volatile uint8_t g_cpu_wait[CONFIG_SMP_NCPUS];
 volatile uint8_t g_cpu_paused[CONFIG_SMP_NCPUS];
+
+/* Host thread specific information */
+
+pthread_key_t g_cpu_key;
 
 /****************************************************************************
  * NuttX domain function prototypes
@@ -191,7 +198,9 @@ static void sim_handle_signal(int signo, siginfo_t *info, void *context)
 {
   int cpu = (int)((uintptr_t)pthread_getspecific(g_cpu_key));
 
+  g_cpu_signal[cpu] = true;
   up_cpu_paused(cpu);
+  g_cpu_signal[cpu] = false;
 }
 
 /****************************************************************************

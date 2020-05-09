@@ -208,6 +208,14 @@ extern volatile void *g_current_regs[1];
 
 extern volatile uint8_t g_cpu_wait[CONFIG_SMP_NCPUS];
 extern volatile uint8_t g_cpu_paused[CONFIG_SMP_NCPUS];
+
+/* For the case of architectures with multiple CPUs, then there must be one
+ * such value for each processor that can receive an interrupt.
+ */
+
+extern volatile bool g_cpu_signal[CONFIG_SMP_NCPUS];
+#else
+extern volatile bool g_cpu_signal[1];
 #endif
 
 /****************************************************************************
