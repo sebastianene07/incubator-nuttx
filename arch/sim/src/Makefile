@@ -85,6 +85,8 @@ endif
 
 HOSTSRCS = up_hostirq.c up_hostmemory.c up_hosttime.c
 STDLIBS += -lpthread
+HOSTCFLAGS += -DCONFIG_USEC_PER_TICK=$(CONFIG_USEC_PER_TICK)
+
 ifneq ($(CONFIG_HOST_MACOS),y)
   STDLIBS += -lrt
 endif
@@ -95,6 +97,15 @@ endif
 
 ifeq ($(CONFIG_SPINLOCK),y)
   HOSTSRCS += up_testset.c
+endif
+
+ifeq ($(CONFIG_SIM_PREEMPTIBLE),y)
+  HOSTSRCS += up_ucontext.c
+  HOSTCFLAGS += -DCONFIG_SIM_PREEMPTIBLE
+ifeq ($(CONFIG_HOST_MACOS), y)
+  HOSTCFLAGS += -Wno-deprecated-declarations
+  HOSTCFLAGS += -pthread
+endif
 endif
 
 ifeq ($(CONFIG_SMP),y)

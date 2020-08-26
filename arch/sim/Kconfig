@@ -484,5 +484,13 @@ config SIM_HCISOCKET
 		target via HCI_CHANNEL_USER. This gives NuttX full
 		control of the device, but is abstracted from the
 		physical interface which is still handled by Linux.
+config SIM_PREEMPTIBLE
+	bool "Preempt tasks on a periodic tick"
+	default false
+	---help---
+		Setup a timer on the host that generates periodic signals
+		used to simulate the tick interrupt. In the context of this
+		tick interrupt we query the scheduler for the next task
+		and preempt the one that is running.
 
 endif # ARCH_SIM
