@@ -43,6 +43,17 @@
 #include <nuttx/arch.h>
 #include "up_internal.h"
 
+/* The alternate signal stack allows us to execute the host signals on a
+ * different stack which makes it possible to check if we run in an interrupt
+ * context.
+ */
+
+#ifdef CONFIG_SIM_ALTERNATE_SIGNAL_STACK
+int host_up_interrupt_context(void);
+#else
+#  define host_up_interrupt_context()  0
+#endif
+
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
@@ -52,13 +63,12 @@
  *
  * Description:
  *   Return true is we are currently executing in the interrupt handler
- *   context.
+ *   context otherwise return false.
  *
  ****************************************************************************/
 
 bool up_interrupt_context(void)
 {
-  /* The simulation is never in the interrupt state */
-
-  return false;
+  int is_in_signal = host_up_interrupt_context();
+  return is_in_signal > 0;
 }

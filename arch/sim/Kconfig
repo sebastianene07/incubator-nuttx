@@ -475,4 +475,11 @@ config SIM_QSPIFLASH_PAGESIZE
 		"wrap" causing the initial data sent to be overwritten.
 		This is consistent with standard SPI FLASH operation.
 
+config SIM_ALTERNATE_SIGNAL_STACK
+	bool "Alternative signal stack"
+	default false
+	---help---
+		Use an alternative signal stack for the host signals to be able to
+		determine when the simulation runs in an interrupt context.
+
 endif # ARCH_SIM

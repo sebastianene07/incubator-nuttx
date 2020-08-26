@@ -64,6 +64,18 @@ static char g_logbuffer[4096];
 #endif
 
 /****************************************************************************
+ * Public Function Prototypes
+ ****************************************************************************/
+
+#ifdef CONFIG_SIM_ALTERNATE_SIGNAL_STACK
+
+/* Run the host signal handler on an alternative stack */
+
+void sim_setup_alternate_sigstack(void);
+void sim_release_alternate_sigstack(void);
+#endif
+
+/****************************************************************************
  * Public Functions
  ****************************************************************************/
 
@@ -81,6 +93,10 @@ int main(int argc, char **argv, char **envp)
   syslog_rpmsg_init_early("server", g_logbuffer, sizeof(g_logbuffer));
 #endif
 
+#ifdef CONFIG_SIM_ALTERNATE_SIGNAL_STACK
+  sim_setup_alternate_sigstack();
+#endif
+
   /* Start NuttX */
 
   if (setjmp(g_simabort) == 0)
@@ -95,6 +111,10 @@ int main(int argc, char **argv, char **envp)
       nx_start();
 #endif
     }
+
+#ifdef CONFIG_SIM_ALTERNATE_SIGNAL_STACK
+  sim_release_alternate_sigstack();
+#endif
 
   return g_exitcode;
 }

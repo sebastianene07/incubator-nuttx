@@ -84,6 +84,10 @@ ifneq ($(CONFIG_HOST_MACOS),y)
   STDLIBS += -lrt
 endif
 
+ifeq ($(CONFIG_SIM_ALTERNATE_SIGNAL_STACK),y)
+  HOSTSRCS += up_hostsignal.c
+endif
+
 ifeq ($(CONFIG_STACK_COLORATION),y)
   CSRCS += up_checkstack.c
 endif
