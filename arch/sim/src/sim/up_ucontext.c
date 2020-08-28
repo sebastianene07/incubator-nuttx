@@ -18,6 +18,15 @@
  *
  ****************************************************************************/
 
+/* This define is required to compile on OSX as the ucontext API is marked
+ * as deprecated. This has to stay in front of all the include headers
+ * otherwise ucontext type will have a wrong size.
+ */
+
+#ifndef _XOPEN_SOURCE
+#  define _XOPEN_SOURCE
+#endif
+
 /****************************************************************************
  * Included Files
  ****************************************************************************/
@@ -28,12 +37,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdint.h>
-
-/* This define is required to compile on OSX */
-
-#ifndef _XOPEN_SOURCE
-#  define _XOPEN_SOURCE             (500)
-#endif
 
 #include <ucontext.h>
 
