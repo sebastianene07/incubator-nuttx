@@ -212,10 +212,10 @@ extern volatile uint8_t g_cpu_paused[CONFIG_SMP_NCPUS];
 
 void *up_doirq(int irq, void *regs);
 
-/* up_setjmp32.S ************************************************************/
-
-int  up_setjmp(void *jb);
-void up_longjmp(void *jb, int val);
+void *up_create_context(void *ucontext_sp, void *prev_ucontext,
+    void (*entry_point)(void), int ucontext_id, size_t stack_len);
+void up_swap_context(void *old_ucontext, void *activate_ucontext);
+void up_set_context(void *current_context);
 
 /* up_hostmemory.c **********************************************************/
 

@@ -75,6 +75,7 @@
 void up_block_task(struct tcb_s *tcb, tstate_t task_state)
 {
   FAR struct tcb_s *rtcb = this_task();
+  FAR struct tcb_s *prev_tcb;
   bool switch_needed;
 
   /* Verify that the context switch can be performed */
@@ -113,39 +114,36 @@ void up_block_task(struct tcb_s *tcb, tstate_t task_state)
 
       nxsched_suspend_scheduler(rtcb);
 
-      /* Copy the exception context into the TCB at the (old) head of the
-       * ready-to-run Task list. if up_setjmp returns a non-zero
-       * value, then this is really the previously running task restarting!
+      /* Save the previous running TCB */
+
+      prev_tcb = rtcb;
+
+      /* Restore the exception context of the rtcb at the (new) head
+       * of the ready-to-run task list.
        */
 
-      if (!up_setjmp(rtcb->xcp.regs))
+      rtcb = this_task();
+      sinfo("New Active Task TCB=%p\n", rtcb);
+
+      /* The way that we handle signals in the simulation is kind of
+       * a kludge.  This would be unsafe in a truly multi-threaded,
+       * interrupt driven environment.
+       */
+
+      if (rtcb->xcp.sigdeliver)
         {
-          /* Restore the exception context of the rtcb at the (new) head
-           * of the ready-to-run task list.
-           */
-
-          rtcb = this_task();
-          sinfo("New Active Task TCB=%p\n", rtcb);
-
-          /* The way that we handle signals in the simulation is kind of
-           * a kludge.  This would be unsafe in a truly multi-threaded,
-           * interrupt driven environment.
-           */
-
-          if (rtcb->xcp.sigdeliver)
-            {
-              sinfo("Delivering signals TCB=%p\n", rtcb);
-              ((sig_deliver_t)rtcb->xcp.sigdeliver)(rtcb);
-              rtcb->xcp.sigdeliver = NULL;
-            }
-
-          /* Reset scheduler parameters */
-
-          nxsched_resume_scheduler(rtcb);
-
-          /* Then switch contexts */
-
-          up_longjmp(rtcb->xcp.regs, 1);
+          sinfo("Delivering signals TCB=%p\n", rtcb);
+          ((sig_deliver_t)rtcb->xcp.sigdeliver)(rtcb);
+          rtcb->xcp.sigdeliver = NULL;
         }
+
+      /* Reset scheduler parameters */
+
+      nxsched_resume_scheduler(rtcb);
+
+      /* Then switch contexts */
+
+      up_swap_context(prev_tcb->xcp.ucontext_buffer,
+                      rtcb->xcp.ucontext_buffer);
     }
 }

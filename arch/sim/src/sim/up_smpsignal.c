@@ -125,6 +125,7 @@ bool up_cpu_pausereq(int cpu)
 
 int up_cpu_paused(int cpu)
 {
+  FAR struct tcb_s *prev_tcb;
   struct tcb_s *rtcb = current_task(cpu);
 
   /* Update scheduler parameters */
@@ -132,65 +133,64 @@ int up_cpu_paused(int cpu)
   nxsched_suspend_scheduler(rtcb);
 
 #ifdef CONFIG_SCHED_INSTRUMENTATION
+
   /* Notify that we are paused */
 
   sched_note_cpu_paused(rtcb);
 #endif
 
-  /* Copy the exception context into the TCB at the (old) head of the
-   * CPUs assigned task list. if up_setjmp returns a non-zero value, then
-   * this is really the previously running task restarting!
+  /* Save the previous running TCB */
+
+  prev_tcb = rtcb;
+
+  /* Unlock the g_cpu_paused spinlock to indicate that we are in the
+   * paused state
    */
 
-  if (up_setjmp(rtcb->xcp.regs) == 0)
+  spin_unlock(&g_cpu_paused[cpu]);
+
+  /* Spin until we are asked to resume.  When we resume, we need to
+   * inicate that we are not longer paused.
+   */
+
+  spin_lock(&g_cpu_wait[cpu]);
+  spin_unlock(&g_cpu_wait[cpu]);
+
+  /* While we were paused, logic on a different CPU probably changed
+   * the task as that head of the assigned task list.  So now we need
+   * restore the exception context of the rtcb at the (new) head
+   * of the assigned list in order to instantiate the new task.
+   */
+
+  rtcb = current_task(cpu);
+
+  /* The way that we handle signals in the simulation is kind of a
+   * kludge.  This would be unsafe in a truly multi-threaded,
+   * interrupt driven environment.
+   */
+
+  if (rtcb->xcp.sigdeliver)
     {
-      /* Unlock the g_cpu_paused spinlock to indicate that we are in the
-       * paused state
-       */
-
-      spin_unlock(&g_cpu_paused[cpu]);
-
-      /* Spin until we are asked to resume.  When we resume, we need to
-       * inicate that we are not longer paused.
-       */
-
-      spin_lock(&g_cpu_wait[cpu]);
-      spin_unlock(&g_cpu_wait[cpu]);
-
-      /* While we were paused, logic on a different CPU probably changed
-       * the task as that head of the assigned task list.  So now we need
-       * restore the exception context of the rtcb at the (new) head
-       * of the assigned list in order to instantiate the new task.
-       */
-
-      rtcb = current_task(cpu);
-
-      /* The way that we handle signals in the simulation is kind of a
-       * kludge.  This would be unsafe in a truly multi-threaded,
-       * interrupt driven environment.
-       */
-
-      if (rtcb->xcp.sigdeliver)
-        {
-          sinfo("CPU%d: Delivering signals TCB=%p\n", cpu, rtcb);
-          ((sig_deliver_t)rtcb->xcp.sigdeliver)(rtcb);
-          rtcb->xcp.sigdeliver = NULL;
-        }
+      sinfo("CPU%d: Delivering signals TCB=%p\n", cpu, rtcb);
+      ((sig_deliver_t)rtcb->xcp.sigdeliver)(rtcb);
+      rtcb->xcp.sigdeliver = NULL;
+    }
 
 #ifdef CONFIG_SCHED_INSTRUMENTATION
-      /* Notify that we have resumed */
 
-      sched_note_cpu_resumed(rtcb);
+  /* Notify that we have resumed */
+
+  sched_note_cpu_resumed(rtcb);
 #endif
 
-      /* Reset scheduler parameters */
+  /* Reset scheduler parameters */
 
-      nxsched_resume_scheduler(rtcb);
+  nxsched_resume_scheduler(rtcb);
 
-      /* Then switch contexts */
+ /* Then switch contexts */
 
-      up_longjmp(rtcb->xcp.regs, 1);
-    }
+  up_swap_context(prev_tcb->xcp.ucontext_buffer,
+                  rtcb->xcp.ucontext_buffer);
 
   return OK;
 }

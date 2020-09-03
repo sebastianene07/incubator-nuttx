@@ -47,6 +47,7 @@
 #include <nuttx/arch.h>
 #include <arch/irq.h>
 
+#include "sched/sched.h"
 #include "up_internal.h"
 
 /****************************************************************************
@@ -103,6 +104,9 @@
 
 FAR void *up_stack_frame(FAR struct tcb_s *tcb, size_t frame_size)
 {
+  FAR struct tcb_s *rtcb = this_task();
+  int ucontext_id = PIDHASH(tcb->pid);
+
   /* Align the frame_size */
 
   frame_size = STACK_ALIGN_UP(frame_size);
@@ -119,9 +123,15 @@ FAR void *up_stack_frame(FAR struct tcb_s *tcb, size_t frame_size)
   tcb->adj_stack_ptr   = (uint8_t *)tcb->adj_stack_ptr - frame_size;
   tcb->adj_stack_size -= frame_size;
 
-  /* Reset the initial state */
+  /* We need to re-create the context because the stack was adjusted to
+   * allocate space for the arguments.
+   */
 
-  tcb->xcp.regs[JB_SP] = (xcpt_reg_t)tcb->adj_stack_ptr - sizeof(xcpt_reg_t);
+  tcb->xcp.ucontext_buffer = up_create_context(tcb->stack_alloc_ptr,
+                                               rtcb->xcp.ucontext_buffer,
+                                               tcb->start,
+                                               ucontext_id,
+                                               tcb->adj_stack_size);
 
   /* And return a pointer to the allocated memory */
 

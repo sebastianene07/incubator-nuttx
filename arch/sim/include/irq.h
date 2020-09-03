@@ -76,9 +76,8 @@ typedef int xcpt_reg_t;
 
 struct xcptcontext
 {
-  void *sigdeliver; /* Actual type is sig_deliver_t */
-
-  xcpt_reg_t regs[XCPTCONTEXT_REGS];
+  void *sigdeliver;      /* Actual type is sig_deliver_t */
+  void *ucontext_buffer; /* Actual type is ucontext_t  */
 };
 #endif
 

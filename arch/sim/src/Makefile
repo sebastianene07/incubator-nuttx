@@ -79,12 +79,13 @@ VPATH = sim
 DEPPATH = $(patsubst %,--dep-path %,$(subst :, ,$(VPATH)))
 
 HOSTCFLAGS += ${shell $(INCDIR) "$(CC)" $(ARCH_SRCDIR)}
+HOSTCFLAGS += -DCONFIG_MAX_TASKS=$(CONFIG_MAX_TASKS)
 ifeq ($(CONFIG_HOST_MACOS),y)
   HOSTCFLAGS += -Wno-deprecated-declarations
 endif
 
 HOSTCFLAGS += -DCONFIG_USEC_PER_TICK=$(CONFIG_USEC_PER_TICK)
-HOSTSRCS = up_hostirq.c up_hostmemory.c up_hosttime.c up_simuart.c
+HOSTSRCS = up_hostirq.c up_hostmemory.c up_hosttime.c up_simuart.c up_ucontext.c 
 STDLIBS += -lpthread
 ifneq ($(CONFIG_HOST_MACOS),y)
   STDLIBS += -lrt

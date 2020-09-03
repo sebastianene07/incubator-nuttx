@@ -44,6 +44,7 @@
 
 #include <nuttx/arch.h>
 
+#include "sched/sched.h"
 #include "up_internal.h"
 
 /****************************************************************************
@@ -66,13 +67,13 @@
 
 void up_initial_state(struct tcb_s *tcb)
 {
-  if (tcb->pid == 0)
-    {
-      up_use_stack(tcb, (void *)(sim_getsp() -
-        CONFIG_IDLETHREAD_STACKSIZE), CONFIG_IDLETHREAD_STACKSIZE);
-    }
+  size_t stack_length = tcb->adj_stack_size;
+  int ucontext_id = PIDHASH(tcb->pid);
+  FAR struct tcb_s *rtcb = this_task();
 
-  memset(&tcb->xcp, 0, sizeof(struct xcptcontext));
-  tcb->xcp.regs[JB_SP] = (xcpt_reg_t)tcb->adj_stack_ptr - sizeof(xcpt_reg_t);
-  tcb->xcp.regs[JB_PC] = (xcpt_reg_t)tcb->start;
+  tcb->xcp.ucontext_buffer = up_create_context(tcb->stack_alloc_ptr,
+                                               rtcb->xcp.ucontext_buffer,
+                                               tcb->start,
+                                               ucontext_id,
+                                               stack_length);
 }
