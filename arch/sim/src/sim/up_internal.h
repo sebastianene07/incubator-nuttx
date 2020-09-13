@@ -245,6 +245,7 @@ void sim_cpu0_start(void);
 void up_cpu_started(void);
 int up_cpu_paused(int cpu);
 struct tcb_s *up_this_task(void);
+bool up_cpu_pausereq(int cpu);
 #endif
 
 /* up_oneshot.c *************************************************************/

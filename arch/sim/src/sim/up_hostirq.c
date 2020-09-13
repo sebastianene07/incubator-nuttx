@@ -99,10 +99,38 @@ uint64_t up_irq_save(void)
 void up_irq_restore(uint64_t flags)
 {
   union sigset_u nmask;
+#ifdef CONFIG_SMP
+  sigset_t set;
+  int caught, ret, cpu;
+#endif
 
   sigemptyset(&nmask.sigset);
   nmask.flags = flags;
   pthread_sigmask(SIG_SETMASK, &nmask.sigset, NULL);
+
+#ifdef CONFIG_SMP
+  cpu = up_cpu_index();
+
+  sigemptyset(&set);
+  sigaddset(&set, SIGUSR1);
+
+  /* If one CPU requested us to pause but we want to enter a critical section
+   * verify is the SIGUSR1 is blocked and if the signal is in the pending
+   * state serve the CPU pause request.
+   */
+
+  if (up_cpu_pausereq(cpu))
+    {
+      if (sigismember(&nmask.sigset, SIGUSR1))
+        {
+          ret = sigwait(&set, &caught);
+          if (ret == 0 && caught == SIGUSR1)
+            {
+              up_cpu_paused(cpu);
+            }
+        }
+    }
+#endif /* CONFIG_SMP */
 }
 
 /****************************************************************************
