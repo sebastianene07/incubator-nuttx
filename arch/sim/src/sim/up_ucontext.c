@@ -123,6 +123,7 @@ void *up_create_context(void *ucontext_sp, void *prev_ucontext,
   unsigned long aligned_sp = STACK_ALIGN_UP(unaligned_sp);
   unsigned long alignment_difference = aligned_sp - unaligned_sp;
 
+  sigemptyset(&new_context->uc_sigmask);
   new_context->uc_stack.ss_sp   = (void *)aligned_sp;
   new_context->uc_stack.ss_size = stack_len == 0 ?
     REQUIRED_UCONTEXT_STACK_LENGTH - alignment_difference :

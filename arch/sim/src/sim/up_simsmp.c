@@ -173,31 +173,6 @@ static void *sim_idle_trampoline(void *arg)
 }
 
 /****************************************************************************
- * Name: sim_handle_signal
- *
- * Description:
- *   This is the SIGUSR signal handler.  It implements the core logic of
- *   up_cpu_pause() on the thread of execution the simulated CPU.
- *
- * Input Parameters:
- *   arg - Standard sigaction arguments
- *
- * Returned Value:
- *   None
- *
- ****************************************************************************/
-
-static void sim_handle_signal(int signo, siginfo_t *info, void *context)
-{
-  int cpu = (int)((uintptr_t)pthread_getspecific(g_cpu_key));
-
-  if (up_cpu_pausereq(cpu))
-    {
-      up_cpu_paused(cpu);
-    }
-}
-
-/****************************************************************************
  * Public Functions
  ****************************************************************************/
 
