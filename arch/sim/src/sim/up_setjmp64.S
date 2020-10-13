@@ -130,6 +130,19 @@ SYMBOL(up_setjmp):
 	movq	%r15, JB_R15(REGS)	/* Save 7: r15 */
 	movq	%rsi, JB_RSI(REGS)	/* Save 8: Return address */
 
+  /* Call pthread_sigmask to store the signal mask in JB_RSIGNAL
+   *  - first argument SIG_SETMASK
+   *  - second argument NULL
+   *  - third agument the address where we store the thread signal mask.
+   */
+  movq REGS, %rdx
+  addq $JB_RSIGNAL, %rdx
+  push %rdi
+  movq $3, %rdi
+  movq $0, %rsi
+  callq _host_save_signals
+  
+  pop %rdi
 	ret
 
 #ifdef __ELF__
@@ -156,6 +169,21 @@ SYMBOL(up_longjmp):
 	movq	JB_R13(REGS),%r13	/* Save 5: r13 */
 	movq	JB_R14(REGS),%r14	/* Save 6: r14 */
 	movq	JB_R15(REGS),%r15	/* Save 7: rbp */
+
+  /* Call pthread_sigmask to restore the signal mask in JB_RSIGNAL
+   *  - first argument SIG_SETMASK
+   *  - second argument is the address where we store the thread signal mask.
+   *  - third agument is NULL
+   */
+  movq REGS, %rsi
+  addq $JB_RSIGNAL, %rsi
+
+  push %rdi
+  movq $3, %rdi
+  movq $0, %rdx
+  callq _host_save_signals
+  
+  pop %rdi
 
 	/* And return */
 

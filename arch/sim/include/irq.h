@@ -51,7 +51,7 @@
 #if defined(CONFIG_HOST_X86_64) && !defined(CONFIG_SIM_M32)
   /* Storage order: %rbx, %rsp, %rbp, %r12, %r13, %r14, %r15, %rip */
 
-#  define XCPTCONTEXT_REGS    8
+#  define XCPTCONTEXT_REGS    9
 #elif defined(CONFIG_HOST_X86) || defined(CONFIG_SIM_M32)
   /* Storage order: %ebx, %esi, %edi, %ebp, sp, and return PC */
 

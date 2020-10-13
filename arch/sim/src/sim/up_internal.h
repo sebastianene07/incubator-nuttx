@@ -79,6 +79,7 @@
 #    define JB_R14 (5*8)
 #    define JB_R15 (6*8)
 #    define JB_RSI (7*8)
+#    define JB_RSIGNAL (8 * 8)
 
 #  else
 #    define JB_RBX (0)
@@ -89,6 +90,7 @@
 #    define JB_R14 (5)
 #    define JB_R15 (6)
 #    define JB_RSI (7)
+#    define JB_RSIGNAL (8)
 
 #  endif /* __ASSEMBLY__ */
 
@@ -229,6 +231,7 @@ uint64_t host_gettime(bool rtc);
 void host_sleep(uint64_t nsec);
 void host_sleepuntil(uint64_t nsec);
 int host_settimer(int *irq);
+int host_save_signals(int, void *, void *);
 
 /* up_simsmp.c **************************************************************/
 

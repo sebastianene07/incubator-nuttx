@@ -350,7 +350,13 @@ int up_cpu_pause(int cpu)
 
   /* Signal the CPU thread */
 
-  pthread_kill(g_cpu_thread[cpu], SIGUSR1);
+  int ret = pthread_kill(g_cpu_thread[cpu], SIGUSR1);
+  if (ret != 0)
+    {
+      g_cpu_wait[cpu]   = 0;
+      g_cpu_paused[cpu] = 0;
+      return -1;
+    }
 
   /* Spin, waiting for the thread to pause */
 

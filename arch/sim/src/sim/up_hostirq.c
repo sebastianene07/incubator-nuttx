@@ -21,7 +21,8 @@
 /****************************************************************************
  * Included Files
  ****************************************************************************/
-
+#include <assert.h>
+#include <pthread.h>
 #include <signal.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -81,7 +82,6 @@ uint64_t up_irq_save(void)
 
   sigfillset(&nmask.sigset);
   pthread_sigmask(SIG_SETMASK, &nmask.sigset, &omask.sigset);
-
   return omask.flags;
 }
 
@@ -139,6 +139,11 @@ void up_enable_irq(int irq)
   sigemptyset(&set);
   sigaddset(&set, irq);
   pthread_sigmask(SIG_UNBLOCK, &set, NULL);
+}
+
+int host_save_signals(int how, void *set, void *oset)
+{
+  return pthread_sigmask(how, set, oset);
 }
 
 /****************************************************************************
